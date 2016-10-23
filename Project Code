@@ -1,0 +1,98 @@
+import urllib2
+from xml.etree import ElementTree
+
+url = 'https://data.cdc.gov/api/views/8zak-ewtm/rows.xml?accessType=DOWNLOAD'
+request = urllib2.Request(url, headers={"Accept" : "application/xml"})
+u = urllib2.urlopen(request)
+tree = ElementTree.parse(u)
+rootElem = tree.getroot()
+
+'''group1 - States ending with letter "a", group2 - States not ending with letter 'A' '''
+
+# empty lists for group1
+group1states1995 = []
+group2states1995 = []
+group1percentages1995 = []
+group2percentages1995 = []
+ignore1 = []
+
+#empty lists for group2
+group1states1996 = []
+group2states1996 = []
+group1percentages1996 = []
+group2percentages1996 = []
+ignore2 = []
+
+
+#Looping through the whole xml file and searching for 1995 and 1996 states, everyday smokers
+for item in rootElem.findall("./row/row"):
+    year = item.find('year').text
+    if year == '1995':
+        state1995 = item.find('state').text
+        everyday1995 = item.find('smoke_everyday').text
+        if state1995.endswith('a'):
+            group1states1995.append(state1995)
+            group1percentages1995.append(everyday1995)
+        elif state1995.startswith('Nationwide'):
+            ignore1.append(state1995)
+        else:
+            group2states1995.append(state1995)
+            group2percentages1995.append(everyday1995)
+    
+    if year == '1996':
+        state1996 = item.find('state').text
+        everyday1996 = item.find('smoke_everyday').text
+        if state1996.endswith('a'):
+            group1states1996.append(state1996)
+            group1percentages1996.append(everyday1996)
+        elif state1996.startswith('Nationwide'):
+            ignore2.append(state1996)
+        else:
+            group2states1996.append(state1996)
+            group2percentages1996.append(everyday1996)
+            
+            
+#This is 1995 Math section :)
+
+lengthofgroup11995 = len(group1percentages1995)
+lengthofgroup21995 = len(group2percentages1995)
+mapofgroup11995 = map(float, group1percentages1995)
+mapofgroup21995 = map(float, group2percentages1995)
+
+sumofgroup11995 = sum(mapofgroup11995)
+sumofgroup21995 = sum(mapofgroup21995)
+
+averageOfGroup11995 = sumofgroup11995/lengthofgroup11995
+averageOfGroup21995 = sumofgroup21995/lengthofgroup21995
+
+
+#This is 1996 Math section :)
+
+lengthofgroup11996 = len(group1percentages1996)
+lengthofgroup21996 = len(group2percentages1996)
+mapofgroup11996 = map(float, group1percentages1996)
+mapofgroup21996 = map(float, group2percentages1996)
+
+sumofgroup11996 = sum(mapofgroup11996)
+sumofgroup21996 = sum(mapofgroup21996)
+
+averageOfGroup11996 = sumofgroup11996/lengthofgroup11996
+averageOfGroup21996 = sumofgroup21996/lengthofgroup21996
+
+#group1 change in percentage from 1995-96
+
+differenceOfGroup1 = averageOfGroup11996 - averageOfGroup11995
+group1ChangeInPercentage = differenceOfGroup1/averageOfGroup11995
+group1FinalChangeInPercentage = group1ChangeInPercentage*100;
+
+#group2 change in percentage from 1995-96
+
+differenceOfGroup2 = averageOfGroup21996 - averageOfGroup21995
+group2ChangeInPercentage = differenceOfGroup2/averageOfGroup21995
+group2FinalChangeInPercentage = group2ChangeInPercentage*100;
+
+print 'States ending in A:', str(int(group1FinalChangeInPercentage))+'%'
+print 'States not ending in A:', str(int(group2FinalChangeInPercentage))+'%'
+
+ 
+
